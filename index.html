@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>BLUE GIRL.EXE</title>
+
+<style>
+@font-face {
+    font-family: "PS1";
+    src: url("fonts/vhs-gothic-alternate.otf");
+}
+
+body {
+    margin: 0;
+    background: black;
+    color: #0000ff;
+    font-family: "PS1", monospace;
+    overflow: hidden;
+}
+
+.screen {
+    display: flex;
+    height: 100vh;
+}
+
+.menu {
+    width: 260px;
+    border-right: 2px solid #0000ff;
+    padding: 15px;
+}
+
+.logo {
+    text-align: center;
+    font-size: 20px;
+    margin-bottom: 20px;
+    letter-spacing: 3px;
+}
+
+.menu-item {
+    padding: 10px;
+    border: 1px solid #0000ff;
+    margin-bottom: 8px;
+    cursor: pointer;
+}
+
+.menu-item:hover {
+    background: #0000ff;
+    color: black;
+}
+
+.content {
+    flex: 1;
+    padding: 20px;
+}
+
+/* 🎮 игры */
+.games-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.game-card {
+    width: 260px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.game-cover {
+    width: 260px;
+    border: 2px solid #0000ff;
+}
+
+.play-btn {
+    padding: 10px 14px;
+    border: 2px solid #0000ff;
+    background: black;
+    color: #0000ff;
+    cursor: pointer;
+    width: fit-content;
+    letter-spacing: 2px;
+}
+
+.play-btn:hover {
+    background: #0000ff;
+    color: black;
+}
+
+/* 🎧 плеер */
+.player {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    border-top: 2px solid #0000ff;
+    background: black;
+    padding: 10px;
+}
+
+.player-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+button {
+    background: black;
+    border: 1px solid #0000ff;
+    color: #0000ff;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #0000ff;
+    color: black;
+}
+
+.track-name {
+    flex: 1;
+    font-size: 12px;
+}
+
+.track {
+    padding: 6px;
+    border-bottom: 1px solid #0000ff;
+    cursor: pointer;
+}
+
+.track:hover {
+    background: #0000ff;
+    color: black;
+}
+
+/* 🖼 обложки */
+.cover {
+    width: 260px;
+    border: 2px solid #0000ff;
+    margin-bottom: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="screen">
+
+    <div class="menu">
+        <div class="logo">BLUE GIRL</div>
+
+        <div class="menu-item" onclick="openCategory('albums')">ALBUMS</div>
+        <div class="menu-item" onclick="openCategory('singles')">SINGLES</div>
+        <div class="menu-item" onclick="openCategory('games')">GAMES</div>
+
+        <div id="list"></div>
+    </div>
+
+    <div class="content" id="content">
+        <h2>SELECT CATEGORY</h2>
+    </div>
+
+</div>
+
+<!-- 🎧 ПЛЕЕР -->
+<div class="player">
+    <div class="player-bar">
+        <button onclick="togglePlay()">▶/⏸</button>
+        <button onclick="stopAudio()">■</button>
+        <div class="track-name" id="trackName">NO TRACK</div>
+    </div>
+</div>
+
+<audio id="audio"></audio>
+
+<script>
+const data = {
+    albums: [
+        {
+            title: "",
+            year: "",
+            cover: "",
+            tracks: [
+                { title: "", file: "" }
+            ]
+        }
+    ],
+
+    singles: [
+        {
+            title: "Celebrate Of The Blue Girl",
+            year: "2026",
+            cover: "covers/1.png",
+            tracks: [
+                { title: "Celebrate Of The Blue Girl", file: "music/lilili.wav" },
+                { title: "She Calls", file: "music/mother.wav" }
+            ]
+        },
+        {
+            title: "Two Kinds Of People",
+            year: "2026",
+            cover: "covers/2.png",
+            tracks: [
+                { title: "Two Kinds Of Peoplel", file: "music/we.wav" },
+                { title: "Old Home", file: "music/song4r.wav" }
+            ]
+        }
+    ],
+
+    games: [
+        {
+            title: "She Playing",
+            file: "game/She Playing/she playing.html",
+            cover: "game/She Playing/New Project (1).png"
+        }
+    ]
+};
+
+const content = document.getElementById("content");
+const audio = document.getElementById("audio");
+const trackName = document.getElementById("trackName");
+
+/* категории */
+function openCategory(type) {
+
+    /* 🎮 GAMES — СРАЗУ ВСЁ */
+    if (type === "games") {
+        let html = `<h2>GAMES</h2><div class="games-grid">`;
+
+        data.games.forEach(game => {
+            html += `
+                <div class="game-card">
+                    <img src="${game.cover}" class="game-cover">
+
+                    <div class="play-btn" onclick="openGame('${game.file}')">
+                        ▶ PLAY
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `</div>`;
+        content.innerHTML = html;
+        return;
+    }
+
+    /* 🎧 ALBUMS / SINGLES */
+    const list = data[type];
+
+    let html = `<h2>${type.toUpperCase()}</h2>`;
+
+    list.forEach(item => {
+        html += `
+            <div onclick="openItem('${type}', ${list.indexOf(item)})" class="menu-item">
+                ${item.title}
+            </div>
+        `;
+    });
+
+    content.innerHTML = html;
+}
+
+/* открыть альбом/сингл */
+function openItem(type, index) {
+    const item = data[type][index];
+
+    let html = `
+        <h2>${item.title}</h2>
+        <p>${item.year}</p>
+    `;
+
+    if (item.cover) {
+        html += `<img src="${item.cover}" class="cover">`;
+    }
+
+    item.tracks.forEach(track => {
+        html += `
+            <div class="track" onclick="playTrack('${track.file}', '${track.title}')">
+                ▶ ${track.title}
+            </div>
+        `;
+    });
+
+    content.innerHTML = html;
+}
+
+/* 🎧 плеер */
+function playTrack(file, title) {
+    audio.src = file;
+    audio.play().catch(()=>{});
+    trackName.innerText = title;
+}
+
+function togglePlay() {
+    if (!audio.src) return;
+    audio.paused ? audio.play() : audio.pause();
+}
+
+function stopAudio() {
+    audio.pause();
+    audio.currentTime = 0;
+    trackName.innerText = "NO TRACK";
+}
+
+/* 🎮 игра */
+function openGame(file) {
+    window.open(file, "_blank");
+}
+</script>
+
+</body>
+</html>
